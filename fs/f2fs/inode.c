@@ -392,11 +392,6 @@ static int do_read_inode(struct inode *inode)
 		fi->i_inline_xattr_size = 0;
 	}
 
-	if (!sanity_check_inode(inode, node_page)) {
-		f2fs_put_page(node_page, 1);
-		return -EFSCORRUPTED;
-	}
-
 	/* check data exist */
 	if (f2fs_has_inline_data(inode) && !f2fs_exist_data(inode))
 		__recover_inline_status(inode, node_page);
@@ -460,6 +455,11 @@ static int do_read_inode(struct inode *inode)
 	/* Need all the flag bits */
 	f2fs_init_read_extent_tree(inode, node_page);
 	f2fs_init_age_extent_tree(inode);
+
+	if (!sanity_check_inode(inode, node_page)) {
+		f2fs_put_page(node_page, 1);
+		return -EFSCORRUPTED;
+	}
 
 	f2fs_put_page(node_page, 1);
 
@@ -743,6 +743,8 @@ void f2fs_evict_inode(struct inode *inode)
 	f2fs_remove_dirty_inode(inode);
 
 	f2fs_destroy_extent_tree(inode);
+
+	f2fs_remove_xattr_set_inode(inode);
 
 	if (inode->i_nlink || is_bad_inode(inode))
 		goto no_delete;
