@@ -1690,9 +1690,13 @@ config HWCONF_MANAGER
 	bool "Hardware configuration and monitor information"
 	default y
 	help
-         It provides all kinds of components configuration information and
-         monitor values.
+	  It provides all kinds of components configuration information and
+	  monitor values.
 
 config USB_SPEEDUP
 	bool "usb3.0 speed up"
+	default n
+
+config TECHPACK_AUDIO_ELISH
+	bool "define audio-drivers for elish device"
 	default n
