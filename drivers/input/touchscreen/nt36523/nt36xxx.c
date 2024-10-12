@@ -2275,6 +2275,35 @@ static void nvt_set_gesture_mode()
 	}
 }
 
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+static ssize_t pen_enable_show(struct kobject *kobj, struct kobj_attribute *attr,
+			char *buf)
+{
+	return sprintf(buf, "%d\n", ts->pen_input_dev_enable);
+}
+
+static ssize_t pen_enable_store(struct kobject *kobj, struct kobj_attribute *attr,
+			 const char *buf, size_t count)
+{
+	int rc, val;
+
+	rc = kstrtoint(buf, 10, &val);
+	if (rc)
+		return -EINVAL;
+
+	ts->pen_input_dev_enable = !!val;
+	disable_pen_input_device(!ts->pen_input_dev_enable);
+	release_pen_event();
+
+	return count;
+}
+
+static struct tp_common_ops pen_enable_ops = {
+	.show = pen_enable_show,
+	.store = pen_enable_store,
+};
+#endif
+
 static int nvt_set_cur_value(int nvt_mode, int nvt_value)
 {
 	if (nvt_mode >= Touch_Mode_NUM && nvt_mode < 0) {
@@ -2998,6 +3027,12 @@ static int32_t nvt_ts_probe(struct spi_device *client)
 			NVT_ERR("register pen input device (%s) failed. ret=%d\n", ts->pen_input_dev->name, ret);
 			goto err_pen_input_register_device_failed;
 		}
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+		ret = tp_common_set_pen_enable_ops(&pen_enable_ops);
+		if (ret < 0) {
+			NVT_ERR("Failed to create pen node err=%d\n", ret);
+		}
+#endif
 	} /* if (ts->pen_support) */
 
 	//---set int-pin & request irq---

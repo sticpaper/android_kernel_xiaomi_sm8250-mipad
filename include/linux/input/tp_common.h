@@ -10,3 +10,4 @@ struct tp_common_ops {
 };
 
 int tp_common_set_double_tap_ops(struct tp_common_ops *ops);
+int tp_common_set_pen_enable_ops(struct tp_common_ops *ops);
